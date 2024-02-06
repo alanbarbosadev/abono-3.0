@@ -16,6 +16,7 @@ import com.dataprev.abono.writers.ReportWriterConfig;
 import lombok.AllArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
@@ -48,7 +49,6 @@ public class PagamentoAbonoReportJobConfig {
     private final PlatformTransactionManager platformTransactionManager;
     private final DataSource dataSource;
     private final ReadErrorListener readErrorListener;
-    private final WriteErrorListener writeErrorListener;
     private final JsonReaderConfig jsonReaderConfig;
     private final PagamentoWriterConfig pagamentoWriterConfig;
     private final DatabaseReaderConfig databaseReaderConfig;
@@ -56,13 +56,12 @@ public class PagamentoAbonoReportJobConfig {
 
 
     @Autowired
-    public PagamentoAbonoReportJobConfig(PagamentoRepository pagamentoRepository, JobRepository jobRepository, PlatformTransactionManager platformTransactionManager, DataSource dataSource, ReadErrorListener readErrorListener, WriteErrorListener writeErrorListener, JsonReaderConfig jsonReaderConfig, PagamentoWriterConfig pagamentoWriterConfig, DatabaseReaderConfig databaseReaderConfig, ReportWriterConfig reportWriterConfig) {
+    public PagamentoAbonoReportJobConfig(PagamentoRepository pagamentoRepository, JobRepository jobRepository, PlatformTransactionManager platformTransactionManager, DataSource dataSource, ReadErrorListener readErrorListener, JsonReaderConfig jsonReaderConfig, PagamentoWriterConfig pagamentoWriterConfig, DatabaseReaderConfig databaseReaderConfig, ReportWriterConfig reportWriterConfig) {
         this.pagamentoRepository = pagamentoRepository;
         this.jobRepository = jobRepository;
         this.platformTransactionManager = platformTransactionManager;
         this.dataSource = dataSource;
         this.readErrorListener = readErrorListener;
-        this.writeErrorListener = writeErrorListener;
         this.jsonReaderConfig = jsonReaderConfig;
         this.pagamentoWriterConfig = pagamentoWriterConfig;
         this.databaseReaderConfig = databaseReaderConfig;
@@ -89,7 +88,13 @@ public class PagamentoAbonoReportJobConfig {
     }
 
     @Bean
-    public Step exportStep() {
+    @StepScope
+    public WriteErrorListener skipListener() {
+        return new WriteErrorListener();
+    }
+
+    @Bean
+    public Step exportStep(WriteErrorListener skipListener) {
         return new StepBuilder("Txt_Export", jobRepository)
                 .<Pagamento, PagamentoReportDto>chunk(10, platformTransactionManager)
                 .reader(databaseReaderConfig.databaseReader(dataSource, Util.GET_TODOS_PAGAMENTOS_QUERY,
@@ -99,15 +104,15 @@ public class PagamentoAbonoReportJobConfig {
                 .faultTolerant()
                 .skip(Throwable.class)
                 .skipPolicy(new AlwaysSkipItemSkipPolicy())
-                .listener(writeErrorListener)
+                .listener(skipListener)
                 .build();
     }
 
     @Bean
-    public Job pagamentoAbonoReportJob() {
+    public Job pagamentoAbonoReportJob(JobRepository jobRepository, Step importStep, Step exportStep) {
         return new JobBuilder("Pagamento_Abono_Report_Job", jobRepository)
-                .start(importStep())
-                .next(exportStep())
+                .start(importStep)
+                .next(exportStep)
                 .build();
     }
 }

@@ -1,25 +1,20 @@
 package com.dataprev.abono.errors;
 
 import com.dataprev.abono.dtos.PagamentoReportDto;
-import com.fasterxml.jackson.core.JsonParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ItemWriteListener;
-import org.springframework.batch.core.SkipListener;
-import org.springframework.batch.core.StepListener;
-import org.springframework.batch.core.annotation.OnSkipInRead;
-import org.springframework.batch.core.annotation.OnSkipInWrite;
-import org.springframework.batch.item.file.FlatFileParseException;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.batch.item.Chunk;
 
 import java.io.File;
 import java.io.FileWriter;
 
-@Component
-public class WriteErrorListener {
-    @OnSkipInWrite
-    public void onSkipInWrite(PagamentoReportDto pagamentoReportDto, Throwable th) {
-        if(th instanceof FlatFileParseException) {
-            createFile("src/main/resources/write_errors.txt", ((FlatFileParseException) th).getInput());
+public class WriteErrorListener implements ItemWriteListener<PagamentoReportDto>{
+
+    @Override
+    public void onWriteError(Exception exception, Chunk<? extends PagamentoReportDto> items){
+        for (PagamentoReportDto pagamentoReportDto : items.getItems()) {
+            createFile("src/main/resources/write_errors.txt", pagamentoReportDto.getCodigoPagamento() + ' ' + pagamentoReportDto.getNome());
         }
     }
 
