@@ -45,7 +45,7 @@ public class Util {
 
             if (field instanceof String) {
                 for (int i = 0; i < paddingSize; i++) {
-                    str.insert(0, ' ');
+                    str.append(' ');
                 }
             } else {
                 for (int i = 0; i < paddingSize; i++) {
@@ -68,7 +68,7 @@ public class Util {
 
         if (str.length() < size) {
             for (int i = 0; i < paddingSize; i++) {
-                str.insert(0, ' ');
+                str.append(' ');
             }
             return str.toString();
         }

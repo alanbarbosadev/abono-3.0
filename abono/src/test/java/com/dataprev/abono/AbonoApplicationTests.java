@@ -36,11 +36,12 @@ class AbonoApplicationTests {
 		JobExecution jobExecution = this.jobLauncherTestUtils.launchJob();
 
 		Assertions.assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
-		Assertions.assertTrue(Files.exists(Paths.get("src/main/resources", "pagamentos2M.txt")));
-		Assertions.assertEquals(Files.readAllLines(Paths.get("src/main/resources", "pagamentos2M.txt")).size(), 1002);
 		Assertions.assertEquals(1000, JdbcTestUtils.countRowsInTable(jdbcTemplate, "tb_pagamento"));
 		Assertions.assertEquals(1000, JdbcTestUtils.countRowsInTable(jdbcTemplate, "tb_banco"));
 		Assertions.assertEquals(1000, JdbcTestUtils.countRowsInTable(jdbcTemplate, "tb_trabalhador"));
+		Assertions.assertTrue(Files.exists(Paths.get("src/main/resources", "pagamentosTest.txt")));
+		Assertions.assertEquals(1002, Files.readAllLines(Paths.get("src/main/resources", "pagamentosTest.txt")).size());
+
 	}
 
 }

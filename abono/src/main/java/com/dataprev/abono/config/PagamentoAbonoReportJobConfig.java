@@ -77,8 +77,8 @@ public class PagamentoAbonoReportJobConfig {
     @Bean
     public Step importStep() {
         return new StepBuilder("Json_Import", jobRepository).
-                <Pagamento, Pagamento>chunk(10, platformTransactionManager)
-                .reader(jsonReaderConfig.jsonReader("pagamentos1MIL.json"))
+                <Pagamento, Pagamento>chunk(100, platformTransactionManager)
+                .reader(jsonReaderConfig.jsonReader("pagamentos10MIL.json"))
                 .writer(pagamentoWriterConfig.writer(pagamentoRepository))
                 .faultTolerant()
                 .skip(Throwable.class)

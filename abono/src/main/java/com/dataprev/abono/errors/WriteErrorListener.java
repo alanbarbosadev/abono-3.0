@@ -14,7 +14,7 @@ public class WriteErrorListener implements ItemWriteListener<PagamentoReportDto>
     @Override
     public void onWriteError(Exception exception, Chunk<? extends PagamentoReportDto> items){
         for (PagamentoReportDto pagamentoReportDto : items.getItems()) {
-            createFile("src/main/resources/write_errors.txt", pagamentoReportDto.getCodigoPagamento() + ' ' + pagamentoReportDto.getNome());
+            createFile("src/main/resources/write_errors.txt", pagamentoReportDto.getCpf() + ' ' + pagamentoReportDto.getNome());
         }
     }
 
